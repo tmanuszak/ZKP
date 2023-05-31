@@ -2,42 +2,9 @@
 
 use rug::Integer;
 use std::any::TypeId;
-
-#[derive(Debug)]
-pub enum FiniteField {
-    PrimeFiniteField(PrimeFiniteField),
-    NonPrimeFiniteField(NonPrimeFiniteField),
-}
-
-#[derive(Debug)]
-pub struct PrimeFiniteField {
-    modulus: Integer,
-}
-
-impl PrimeFiniteField {
-    fn new(modulus: Integer) -> Result<Self, &'static str> {
-        // TODO: check modulus is prime
-        Ok(PrimeFiniteField { modulus })
-    }
-}
-
-#[derive(Debug)]
-pub struct NonPrimeFiniteField {
-    order: Integer,
-    characteristic: Integer,
-    degree: Integer,
-}
-
-impl NonPrimeFiniteField {
-    fn new(order: Integer, characteristic: Integer, degree: Integer) -> Result<Self, &'static str> {
-        // TODO: check if characteristic is prime and if order == characteristic ^ degree
-        Ok(NonPrimeFiniteField {
-            order,
-            characteristic,
-            degree,
-        })
-    }
-}
+use std::ops::{Rem, Add};
+use crate::finite_field::FiniteField;
+use crate::finite_field::prime_finite_field::PrimeFiniteField;
 
 #[derive(Debug)]
 pub struct FiniteFieldElement<T> {
@@ -72,10 +39,51 @@ impl<T: 'static> FiniteFieldElement<T> {
     }
 }
 
+struct MyStruct {
+    value: Integer,
+}
+
+impl Add for MyStruct {
+    type Output = MyStruct;
+
+    fn add(self, other: MyStruct) -> MyStruct {
+        let sum = self.value + other.value;
+        MyStruct { value: sum }
+    }
+}
+
+// TODO: Fix so that it is self + other % modulus
+impl<T> Add for FiniteFieldElement<T> 
+where
+    T: Add<Output = T> + Rem<Output = T> + Clone,
+{
+    type Output = FiniteFieldElement<T>;
+    fn add(self, other: FiniteFieldElement<T>) -> FiniteFieldElement<T> {
+        assert!(self.field == other.field);
+        match self.field {
+            FiniteField::PrimeFiniteField(field) => {
+                let modulus = field.modulus;
+                let value = self.value + other.value;
+                FiniteFieldElement {
+                    field: FiniteField::PrimeFiniteField(PrimeFiniteField { modulus }),
+                    value,
+                }
+            }
+            FiniteField::NonPrimeFiniteField(field) => {
+                // TODO
+                unimplemented!()
+            }
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use rug::Integer;
+    use crate::finite_field::prime_finite_field::PrimeFiniteField;
+    use crate::finite_field::non_prime_finite_field::NonPrimeFiniteField;
 
     #[test]
     fn test_new_fieldelement_prime() -> Result<(), String> {
@@ -102,6 +110,25 @@ mod tests {
         );
         assert!(a.is_ok());
         println!("{:?}", a?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_fieldelement_prime() -> Result<(), String> {
+        let a = FiniteFieldElement::new(
+            FiniteField::PrimeFiniteField(PrimeFiniteField {
+                modulus: Integer::from(5),
+            }),
+            Integer::from(3)
+        )?;
+        let b = FiniteFieldElement::new(
+            FiniteField::PrimeFiniteField(PrimeFiniteField {
+                modulus: Integer::from(5),
+            }),
+            Integer::from(4)
+        )?;
+        let c = a + b;
+        println!("{:?}", c);
         Ok(())
     }
 }

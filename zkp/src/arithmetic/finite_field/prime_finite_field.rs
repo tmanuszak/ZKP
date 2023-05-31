@@ -1,6 +1,6 @@
 use rug::Integer;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub struct PrimeFiniteField {
     pub modulus: Integer,
 }

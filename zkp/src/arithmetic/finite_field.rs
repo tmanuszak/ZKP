@@ -3,11 +3,14 @@
 pub mod non_prime_finite_field;
 pub mod prime_finite_field;
 
-use non_prime_finite_field::NonPrimeFiniteField;
-use prime_finite_field::PrimeFiniteField;
+pub use non_prime_finite_field::NonPrimeFiniteField;
+pub use prime_finite_field::PrimeFiniteField;
 
+// Instead of a box, make an enum to keep on the stack
 #[derive(Debug, PartialEq)]
 pub enum FiniteField {
-    PrimeFiniteField(PrimeFiniteField),
-    NonPrimeFiniteField(NonPrimeFiniteField),
+    PrimeFiniteFieldVariant(PrimeFiniteField),
+    NonPrimeFiniteFieldVariant(NonPrimeFiniteField),
 }
+
+pub use FiniteField::{PrimeFiniteFieldVariant, NonPrimeFiniteFieldVariant};

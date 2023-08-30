@@ -1,4 +1,4 @@
-use rug::Integer;
+use crate::arithmetic::Integer;
 
 #[derive(Debug, PartialEq)]
 pub struct NonPrimeFiniteField {
